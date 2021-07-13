@@ -3,21 +3,23 @@ html, body {
 }
 
 .led {
+  $pixelWidth: 24px;
+
   display: flex;
   height: 100%;
   justify-content: center;
   align-items: center;
 
   &-indicator {
-    width: 168px;
+    width: $pixelWidth * 5 + 8;
     overflow: hidden;
-    margin: 0 16px 0 0;
+    margin: 0 $pixelWidth/1.5 0 0;
 
     &__pixel {
       background: #088;
       //border-radius: 50%;
-      width: 32px;
-      height: 32px;
+      width: $pixelWidth;
+      height: $pixelWidth;
       margin: 0 2px 2px 0;
       float: left;
       transition: transform .25s;

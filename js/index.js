@@ -77,7 +77,7 @@ class Led {
     const chars = val.split('').reverse()
     const cells = [...this.cells].reverse()
 
-    console.log(chars)
+    //console.log(chars)
 
     chars.forEach((c, i) => cells[i]?.render(c))
   }
@@ -86,6 +86,7 @@ class Led {
 class Timer {
   constructor(time = [0,0,0]) {
     this.seconds = 0
+    this.interval = null
 
     this.time = {
       h: time[0],
@@ -103,11 +104,34 @@ class Timer {
   }
 
   start() {
-    setInterval(() => {
-      this.seconds -= 0.1
-      //console.log(Math.ceil(this.seconds))
-      this.onTickCallback?.call(this, Math.ceil(this.seconds))
+    this.interval = setInterval(() => {
+      this.seconds = +(this.seconds - .1).toFixed(1)
+      const seconds = Math.ceil(this.seconds)
+
+      const h = Math.floor(seconds / 3600)
+      const m = Math.floor((seconds - h * 3600) / 60)
+      const s = Math.ceil(seconds - h * 3600 - m * 600)
+
+      this.time = {h, m, s}
+
+      console.log(this.time, this.seconds)
+
+      this.onTickCallback?.call(this, {
+        h, m, s, seconds
+      })
+
+      !this.seconds && this.stop()
+
     }, 100)
+
+    return this
+  }
+
+  stop() {
+    console.log('stop !!!')
+
+    clearInterval(this.interval)
+    this.interval = null
 
     return this
   }
@@ -116,20 +140,26 @@ class Timer {
     this.onTickCallback = fn
     return this
   }
+
+  format(val = 'hh:mm:ss') {
+    console.log('format', this.time)
+  }
 }
 
 const led = new Led({
   el: document.querySelector('.led')
 })
 
-led.print('12:34:56')
+//led.print('12:34:56')
 
-const timer = new Timer([0,0,10])
-/*
-timer.start().onTick((val) => {
-  console.log(val)
-  led.print(val)
+const timer = new Timer([0,0,5])
+//timer.start()
+//timer.format()
+
+timer.start().onTick(({h, m, s}) => {
+  console.log(h, m, s)
+  led.print(`${h}:${m}:${s}`)
 })
-*/
+
 
 //setInterval(() => led.print(Date.now(), 1000))
