@@ -22,8 +22,6 @@ class Cell {
   }
 
   init() {
-    //console.log(Cell.charset);
-
     for (let i = 0; i < 35; i++) {
       let div = document.createElement('div')
       div.className = 'led-indicator__pixel'
@@ -77,14 +75,16 @@ class Led {
     const chars = val.split('').reverse()
     const cells = [...this.cells].reverse()
 
-    //console.log(chars)
-
     chars.forEach((c, i) => cells[i]?.render(c))
+  }
+
+  blink(isBlinking = true) {
+    this.blinkInterval = setInterval(() => this.el.classList.toggle('hidded'), 500)
   }
 }
 
 class Timer {
-  constructor(time = [0,0,0]) {
+  constructor(time = [0,0,0], events = {}) {
     this.seconds = 0
     this.interval = null
 
@@ -93,6 +93,9 @@ class Timer {
       m: time[1],
       s: time[2],
     }
+
+    this.onTick = events.onTick
+    this.onEnd = events.onEnd
 
     this.init()
   }
@@ -110,14 +113,16 @@ class Timer {
 
       const h = Math.floor(seconds / 3600)
       const m = Math.floor((seconds - h * 3600) / 60)
-      const s = Math.ceil(seconds - h * 3600 - m * 600)
+      const s = Math.ceil(seconds - h * 3600 - m * 60)
 
-      this.time = {h, m, s}
+      const hh = h < 10? `0${h}` : `${h}`
+      const mm = m < 10? `0${m}` : `${m}`
+      const ss = s < 10? `0${s}` : `${s}`
 
-      console.log(this.time, this.seconds)
+      console.log(this.time, h, m, s, this.seconds)
 
-      this.onTickCallback?.call(this, {
-        h, m, s, seconds
+      this.onTick?.call(this, {
+        h, m, s, seconds, formatted: `${hh}:${mm}:${ss}`
       })
 
       !this.seconds && this.stop()
@@ -133,16 +138,9 @@ class Timer {
     clearInterval(this.interval)
     this.interval = null
 
-    return this
-  }
+    this.onEnd?.call(this)
 
-  onTick(fn) {
-    this.onTickCallback = fn
     return this
-  }
-
-  format(val = 'hh:mm:ss') {
-    console.log('format', this.time)
   }
 }
 
@@ -150,16 +148,16 @@ const led = new Led({
   el: document.querySelector('.led')
 })
 
-//led.print('12:34:56')
+led.print('00:00:00')
 
-const timer = new Timer([0,0,5])
-//timer.start()
-//timer.format()
-
-timer.start().onTick(({h, m, s}) => {
-  console.log(h, m, s)
-  led.print(`${h}:${m}:${s}`)
+const timer = new Timer([0,0,5], {
+  onTick(time) {
+    led.print(time.formatted)
+  },
+  onEnd() {
+    console.log('!!! FINISH !!!')
+    led.blink()
+  }
 })
 
-
-//setInterval(() => led.print(Date.now(), 1000))
+//timer.start()
