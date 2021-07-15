@@ -1,3 +1,5 @@
+const delay = val => new Promise((resolve) => setTimeout(resolve, val))
+
 class Cell {
   static charset = {
     '0': [14, 17, 19, 21, 25, 17, 14],
@@ -67,6 +69,8 @@ class Led {
       this.cells.push(new Cell({el}))
     )
 
+    console.log(this.cells)
+
     return this
   }
 
@@ -79,7 +83,7 @@ class Led {
   }
 
   blink(isBlinking = true) {
-    this.blinkInterval = setInterval(() => this.el.classList.toggle('hidded'), 500)
+    this.blinkInterval = setInterval(() => this.el.classList.toggle('on'), 500)
   }
 }
 
@@ -148,15 +152,23 @@ const led = new Led({
   el: document.querySelector('.led')
 })
 
+/*
+const ledHH = new Led({
+  el: document.querySelector('.led__group-hh')
+})
+
+
+ledHH.print('12')
+*/
 led.print('00:00:00')
 
-const timer = new Timer([0,0,5], {
+const timer = new Timer([0,0,2], {
   onTick(time) {
     led.print(time.formatted)
   },
   onEnd() {
     console.log('!!! FINISH !!!')
-    led.blink()
+    delay(1000).then(() => led.blink())
   }
 })
 
