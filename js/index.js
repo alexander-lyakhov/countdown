@@ -18,6 +18,9 @@ class Cell {
   };
 
   constructor(config = {}) {
+    if (!config.el) {
+      throw new Error('class Cell: => Element is not defined !!! --')
+    }
     this.el = config.el
     this.value = '0'
     this.init().render()
@@ -57,16 +60,20 @@ class Cell {
 }
 
 class Led {
-  constructor(config = {}) {
+  constructor(config = {keepChildNodes: false}) {
     this.el = config.el
     this.cells = []
 
-    this.init()
+    this.init(config)
   }
 
-  init() {
+  init(config) {
     this.el.querySelectorAll('.led-indicator').forEach(el =>
-      this.cells.push(new Cell({el}))
+      this.cells.push(new Cell({
+        el,
+        keepChildNodes: config.keepChildNodes
+      }))
+      // this.cells.push(new Cell())
     )
 
     console.log(this.cells)
