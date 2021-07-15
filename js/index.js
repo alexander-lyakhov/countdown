@@ -21,16 +21,21 @@ class Cell {
     if (!config.el) {
       throw new Error('class Cell: => Element is not defined !!! --')
     }
+
     this.el = config.el
-    this.value = '0'
-    this.init().render()
+    this.keepChildNodes = config.keepChildNodes || false
+
+    this.value = ''
+    this.init(config)
   }
 
   init() {
-    for (let i = 0; i < 35; i++) {
-      let div = document.createElement('div')
-      div.className = 'led-indicator__pixel'
-      this.el.appendChild(div)
+    if (!this.keepChildNodes) {
+      for (let i = 0; i < 35; i++) {
+        let div = document.createElement('div')
+        div.className = 'led-indicator__pixel'
+        this.el.appendChild(div)
+      }
     }
 
     return this
@@ -44,7 +49,7 @@ class Cell {
 
       for (let line = 0; line < 7; line++) {
 
-        let byte  = charset[val][line]
+        let byte = charset[val][line]
         let pixel = this.el.childNodes[line * 5 + 4]
 
         for (let i = 0; i < 5; i++) {
@@ -60,20 +65,21 @@ class Cell {
 }
 
 class Led {
-  constructor(config = {keepChildNodes: false}) {
-    this.el = config.el
-    this.cells = []
+  constructor(config) {
+    if (!config.el) {
+      throw new Error('class Led: => Element is not defined !!! --')
+    }
 
-    this.init(config)
+    this.el = config.el
+    this.keepChildNodes = config.keepChildNodes || false
+
+    this.cells = []
+    this.init()
   }
 
-  init(config) {
+  init() {
     this.el.querySelectorAll('.led-indicator').forEach(el =>
-      this.cells.push(new Cell({
-        el,
-        keepChildNodes: config.keepChildNodes
-      }))
-      // this.cells.push(new Cell())
+      this.cells.push(new Cell({el, keepChildNodes: this.keepChildNodes}))
     )
 
     console.log(this.cells)
@@ -155,19 +161,83 @@ class Timer {
   }
 }
 
+class IGroup {
+  constructor(config) {
+    this.el = config.el
+    this.onChange = config.onChange
+
+    this.groupValue = 0
+    this.sensitivity = 1
+    this.init()
+
+    console.log(this.el)
+  }
+
+  init() {
+    this.ledGroup = new Led({
+      el: this.el,
+      keepChildNodes: true
+    })
+
+    this.el.addEventListener('wheel', e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const direction = e.wheelDelta;
+
+      Math.abs(direction) === 120 ?
+        direction > 0 ? this.changeValue(this.sensitivity):this.changeValue(-this.sensitivity):
+        direction < 0 ? this.changeValue(this.sensitivity):this.changeValue(-this.sensitivity);
+    })
+
+    this.el.addEventListener('mouseenter', e => {
+      this.el.classList.add('no-transition')
+    })
+
+    this.el.addEventListener('mouseleave', e => {
+      e.target === this.el && this.el.classList.remove('no-transition')
+    })
+
+    this.el.addEventListener('keydown', e => {
+      console.log(e)
+    })
+
+    return this
+  }
+
+  changeValue(dir) {
+    let val = this.groupValue + dir
+
+    if (val >= 60) val = 0
+    if (val < 0) val = 59
+
+    this.groupValue  = val
+
+    this.onChange({value: this.value, printValue: this.printValue})
+
+    return this
+  }
+
+  get value() {
+    return Math.floor(this.groupValue)
+  }
+
+  get printValue() {
+    return this.value < 10 ? `0${this.value}` : `${this.value}`
+  }
+}
+
 const led = new Led({
   el: document.querySelector('.led')
 })
-
-/*
-const ledHH = new Led({
-  el: document.querySelector('.led__group-hh')
-})
-
-
-ledHH.print('12')
-*/
 led.print('00:00:00')
+
+const groupHH = new IGroup({
+  el: document.querySelector('.led__group-hh'),
+  onChange(e) {
+    this.ledGroup.print(e.printValue)
+  }
+})
 
 const timer = new Timer([0,0,2], {
   onTick(time) {

@@ -24,6 +24,10 @@ html, body {
     &:hover {
       border: 2px solid #c93;
     }
+
+    &:not(.no-transition) .led-indicator__pixel {
+      transition: transform .25s;
+    }
   }
 
   &-indicator {
@@ -37,7 +41,7 @@ html, body {
       height: $pixelWidth;
       margin: 0 2px 2px 0;
       float: left;
-      transition: transform .25s;
+      //transition: transform .25s;
 
       &:nth-child(5n) {
         margin-right: 0;
