@@ -164,8 +164,11 @@ class Timer {
 class IGroup {
   constructor(config) {
     this.el = config.el
-    this.onChange = config.onChange
-
+    this.events = {
+      onChange: config.onChange,
+      onGetFocus: config.onGetFocus,
+      onLostFocus: config.onLostFocus
+    }
     this.groupValue = 0
     this.sensitivity = 1
     this.init()
@@ -179,6 +182,10 @@ class IGroup {
       keepChildNodes: true
     })
 
+    return this.bindEvents()
+  }
+
+  bindEvents() {
     this.el.addEventListener('wheel', e => {
       e.preventDefault();
       e.stopPropagation();
@@ -192,14 +199,14 @@ class IGroup {
 
     this.el.addEventListener('mouseenter', e => {
       this.el.classList.add('no-transition')
+      this.events.onGetFocus?.call(this)
     })
 
     this.el.addEventListener('mouseleave', e => {
-      e.target === this.el && this.el.classList.remove('no-transition')
-    })
-
-    this.el.addEventListener('keydown', e => {
-      console.log(e)
+      if (e.target === this.el) {
+        this.el.classList.remove('no-transition')
+        this.events.onLostFocus?.call(this)
+      }
     })
 
     return this
@@ -213,7 +220,14 @@ class IGroup {
 
     this.groupValue  = val
 
-    this.onChange({value: this.value, printValue: this.printValue})
+    this.events.onChange?.call(this, {value: this.value, printValue: this.printValue})
+
+    return this
+  }
+
+  reset() {
+    this.groupValue = 0
+    this.events.onChange?.call(this, {value: this.value, printValue: this.printValue})
 
     return this
   }
@@ -227,17 +241,54 @@ class IGroup {
   }
 }
 
+class Controller {
+  constructor() {
+    this.groups = []
+    this.focusedGrups = null
+    this.init()
+  }
+
+  init() {
+    const _this = this
+
+    this.ledGroups = [
+      '.led__group-hh',
+      '.led__group-mm',
+      '.led__group-ss'
+    ].map(selector => {
+      return new IGroup({
+        el: document.querySelector(selector),
+        onChange(e) {
+          this.ledGroup.print(e.printValue)
+        },
+        onGetFocus() {
+          _this.focusedGrups = this
+        },
+        onLostFocus() {
+          _this.focusedGrups = null
+        }
+      })
+    })
+
+    return this.bindEvents()
+  }
+
+  bindEvents() {
+    document.body.addEventListener('keydown', e => {
+      e.keyCode === 27 && this.focusedGrups?.reset()
+    })
+
+    return this
+  }
+}
+
 const led = new Led({
   el: document.querySelector('.led')
 })
 led.print('00:00:00')
 
-const groupHH = new IGroup({
-  el: document.querySelector('.led__group-hh'),
-  onChange(e) {
-    this.ledGroup.print(e.printValue)
-  }
-})
+new Controller()
+
 
 const timer = new Timer([0,0,2], {
   onTick(time) {
