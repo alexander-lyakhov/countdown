@@ -50,7 +50,7 @@ class Controller {
           this.ledGroups[2].value
         ])
 
-        this.timer.start()
+        this.timer.togglePlay()
       }
     })
 
@@ -62,7 +62,6 @@ const led = new Led({
   el: document.querySelector('.led')
 })
 led.print('00:00:00')
-
 
 const timer = new Timer({
   onTick(time) {

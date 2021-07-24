@@ -27,11 +27,11 @@
     return this
   }
 
-  start() {
-    if (this.interval) {
-      return this.stop()
-    }
+  togglePlay() {
+    return !this.interval ? this.start() : this.stop()
+  }
 
+  start() {
     this.interval = setInterval(() => {
       this.seconds = +(this.seconds - .1).toFixed(1)
       const seconds = Math.ceil(this.seconds)
@@ -54,7 +54,7 @@
 
     }, 100)
 
-    return this.stop
+    return this
   }
 
   stop() {
@@ -63,7 +63,7 @@
     clearInterval(this.interval)
     this.interval = null
 
-    return this.start
+    return this
   }
 
   finish() {
