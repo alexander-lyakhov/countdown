@@ -1,4 +1,7 @@
 ﻿class IGroup {
+  #value = 0
+  #sensitivity = 1
+
   constructor(config) {
     this.el = config.el
     this.events = {
@@ -6,11 +9,7 @@
       onGetFocus: config.onGetFocus,
       onLostFocus: config.onLostFocus
     }
-    this.groupValue = 0
-    this.sensitivity = 1
     this.init()
-
-    console.log(this.el)
   }
 
   init() {
@@ -30,8 +29,8 @@
       const direction = e.wheelDelta;
 
       Math.abs(direction) === 120 ?
-        direction > 0 ? this.changeValue(this.sensitivity):this.changeValue(-this.sensitivity):
-        direction < 0 ? this.changeValue(this.sensitivity):this.changeValue(-this.sensitivity);
+        direction > 0 ? this.changeValue(this.#sensitivity):this.changeValue(-this.#sensitivity):
+        direction < 0 ? this.changeValue(this.#sensitivity):this.changeValue(-this.#sensitivity);
     })
 
     this.el.addEventListener('mouseenter', e => {
@@ -50,12 +49,12 @@
   }
 
   changeValue(dir) {
-    let val = this.groupValue + dir
+    let val = this.#value + dir
 
     if (val >= 60) val = 0
     if (val < 0) val = 59
 
-    this.groupValue  = val
+    this.#value  = val
 
     this.events.onChange?.call(this, {value: this.value, printValue: this.printValue})
 
@@ -63,14 +62,14 @@
   }
 
   reset() {
-    this.groupValue = 0
+    this.#value = 0
     this.events.onChange?.call(this, {value: this.value, printValue: this.printValue})
 
     return this
   }
 
   get value() {
-    return Math.floor(this.groupValue)
+    return Math.floor(this.#value)
   }
 
   get printValue() {

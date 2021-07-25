@@ -1,29 +1,18 @@
 ﻿class Timer {
-  static STATUS = {
-    CLEAN: 0,
-    READY: 1,
-    BUSY: 2,
-  }
-
-  #value
-  #status
+  #seconds = 0
+  #value = null
+  #interval = null
+  #bof = true
+  #eof = true
 
   constructor(config = {}) {
-    this.seconds = 0
-    this.interval = null
-
     this.onTick = config.onTick
     this.onEnd = config.onEnd
 
-    this.#status = Timer.STATUS.CLEAN
+    this.init()
   }
 
   init(time = [0,0,0]) {
-    //
-    // No inits if timer is charged
-    //
-    if (this.seconds) return this
-
     this.time = {
       h: time[0],
       m: time[1],
@@ -31,13 +20,12 @@
     }
 
     const [h, m, s] = time
-    this.seconds = h * 3600 + m * 60 + s
 
-    console.log(this.time, this.seconds)
+    this.#seconds = h * 3600 + m * 60 + s
+    this.computeCurrentTime(this.#seconds)
 
-    this.computeCurrentTime(this.seconds)
-
-    this.#status = Timer.STATUS.READY
+    this.#bof = true
+    this.#eof = this.#seconds === 0
 
     return this
   }
@@ -53,29 +41,30 @@
 
     this.#value = {h, m, s, seconds, formatted: `${hh}:${mm}:${ss}`}
 
-    console.log(this.time, h, m, s, this.seconds)
+    //console.log(this.time, h, m, s, this.#seconds)
 
     return this
   }
 
   togglePlay() {
-    return !this.interval ? this.start() : this.stop()
+    this.#bof = false
+    this.#eof = false
+
+    return !this.#interval ? this.start() : this.stop()
   }
 
   start() {
-    this.interval = setInterval(() => {
-      this.seconds = +(this.seconds - .1).toFixed(1)
-      const seconds = Math.ceil(this.seconds)
+    this.#interval = setInterval(() => {
+      this.#seconds = +(this.#seconds - .1).toFixed(1)
+      const seconds = Math.ceil(this.#seconds)
 
       this.computeCurrentTime(seconds)
 
       this.onTick?.call(this, this.#value)
 
-      !this.seconds && this.finish()
+      !this.#seconds && this.finish()
 
     }, 100)
-
-    this.#status === Timer.STATUS.BUSY
 
     return this
   }
@@ -83,45 +72,59 @@
   stop() {
     console.log('stop !!!')
 
-    clearInterval(this.interval)
-    this.interval = null
+    clearInterval(this.#interval)
+    this.#interval = null
 
     return this
   }
 
   finish() {
     this.stop()
+
+    this.#bof = true
+    this.#eof = true
+
     this.onEnd?.call(this)
-    this.#status = Timer.STATUS.CLEAN
 
     return this
   }
 
   rewind() {
-    this.#status = Timer.STATUS.READY
+    this.stop()
+
+    this.#bof = true
+    this.#eof = this.#seconds === 0
 
     return this.init(
       Object.values(this.time)
     )
   }
 
-  get value() {
-    return this.#value
+  reset() {
+    return this.stop().init([0,0,0])
   }
 
-  get status() {
-    return this.#status
+  get printValue() {
+    return this.#value.formatted
   }
 
   get isClean() {
-    return this.#status === Timer.STATUS.CLEAN
+    return this.#bof && this.#eof
   }
 
   get isReady() {
-    return this.#status === Timer.STATUS.READY
+    return this.#bof && !this.#eof
   }
 
   get isBusy() {
-    return this.#status === Timer.STATUS.BUSY
+    return !this.#bof && !this.#eof
+  }
+
+  get bof() {
+    return this.#bof
+  }
+
+  get eof() {
+    return this.#eof
   }
 }

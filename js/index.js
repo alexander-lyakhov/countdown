@@ -41,9 +41,11 @@ class Controller {
       console.log(e)
 
       if (led.isBlinking) {
-        return led.stopBlink()
+        this.timer.rewind()
+        led.stopBlink().print(this.timer.printValue)
+        return
       }
-      e.keyCode ===  8 && this.handleBackspace()
+      e.keyCode === 8 && this.handleBackspace()
       e.keyCode === 27 && this.handleEscape()
       e.keyCode === 32 && this.handleSpace()
     })
@@ -52,28 +54,36 @@ class Controller {
   }
 
   handleBackspace() {
-    console.log('handleBackspace', this.timer.isClean)
-    if (this.timer.isClean) {
-      this.timer.rewind()
-      led.print(this.timer.value.formatted)
-    }
+    this.timer.rewind()
+    led.print(this.timer.printValue)
+
+    return this
   }
 
   handleEscape() {
-    this.focusedGrups?.reset()
+    if (this.focusedGrups) {
+      return this.focusedGrups.reset()
+    }
+
+       this.ledGroups.map(g => g.reset())
+       this.timer.reset()
+       led.print(this.timer.printValue)
+
+    return this
   }
 
   handleSpace() {
-    console.log('isClean', this.timer.isClean)
-    //
-    // Will be ignored if timer has been already initialized
-    //
-    this.timer.init([
+    !this.timer.isBusy && this.timer.init([
       this.ledGroups[0].value,
       this.ledGroups[1].value,
       this.ledGroups[2].value
     ])
-    this.timer.togglePlay()
+
+    if (!this.timer.isClean) {
+      this.timer.togglePlay()
+    }
+
+    return this
   }
 }
 
