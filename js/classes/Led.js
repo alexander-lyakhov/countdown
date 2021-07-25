@@ -27,9 +27,26 @@
     const cells = [...this.cells].reverse()
 
     chars.forEach((c, i) => cells[i]?.render(c))
+
+    return this
   }
 
-  blink(isBlinking = true) {
+  startBlink() {
     this.blinkInterval = setInterval(() => this.el.classList.toggle('on'), 500)
+    return this
+  }
+
+  stopBlink() {
+    this.el.classList.remove('on')
+    this.el.classList.add('on')
+
+    clearTimeout(this.blinkInterval)
+    this.blinkInterval = null
+
+    return this
+  }
+
+  get isBlinking() {
+    return !!this.blinkInterval
   }
 }

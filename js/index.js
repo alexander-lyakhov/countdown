@@ -38,23 +38,42 @@ class Controller {
 
   bindEvents() {
     document.body.addEventListener('keydown', e => {
-      e.keyCode === 27 && this.focusedGrups?.reset()
+      console.log(e)
 
-      if (e.keyCode === 32) {
-        //
-        // Will be ignored if timer has been already initialized
-        //
-        this.timer.init([
-          this.ledGroups[0].value,
-          this.ledGroups[1].value,
-          this.ledGroups[2].value
-        ])
-
-        this.timer.togglePlay()
+      if (led.isBlinking) {
+        return led.stopBlink()
       }
+      e.keyCode ===  8 && this.handleBackspace()
+      e.keyCode === 27 && this.handleEscape()
+      e.keyCode === 32 && this.handleSpace()
     })
 
     return this
+  }
+
+  handleBackspace() {
+    console.log('handleBackspace', this.timer.isClean)
+    if (this.timer.isClean) {
+      this.timer.rewind()
+      led.print(this.timer.value.formatted)
+    }
+  }
+
+  handleEscape() {
+    this.focusedGrups?.reset()
+  }
+
+  handleSpace() {
+    console.log('isClean', this.timer.isClean)
+    //
+    // Will be ignored if timer has been already initialized
+    //
+    this.timer.init([
+      this.ledGroups[0].value,
+      this.ledGroups[1].value,
+      this.ledGroups[2].value
+    ])
+    this.timer.togglePlay()
   }
 }
 
@@ -69,7 +88,7 @@ const timer = new Timer({
   },
   onEnd() {
     console.log('!!! FINISH !!!')
-    delay(1000).then(() => led.blink())
+    delay(500).then(() => led.startBlink())
   }
 })
 
