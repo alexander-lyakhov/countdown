@@ -3,7 +3,7 @@ html, body {
 }
 
 .led {
-  $pixelWidth: 24px;
+  $pixelWidth: 32px;
 
   display: flex;
   height: 100%;
@@ -36,7 +36,7 @@ html, body {
     margin: 0 $pixelWidth/4;
 
     &__pixel {
-      background: #088;
+      background: #ccc;
       width: $pixelWidth;
       height: $pixelWidth;
       margin: 0 2px 2px 0;
